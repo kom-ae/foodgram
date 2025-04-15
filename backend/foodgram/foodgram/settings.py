@@ -121,3 +121,14 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.FoodgramCreateUsersSerializer',
+        # 'user': 'api.serializers.FoodgramUsersSerializer',
+    },
+    # 'PERMISSIONS': {
+    #     'user': ['rest_framework.permissions.IsAuthenticated'],
+    # },
+    # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email
+}
