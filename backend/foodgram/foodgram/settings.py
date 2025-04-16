@@ -27,8 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'api.apps.ApiConfig',
     'users.apps.UsersConfig',
-    'api.apps.ApiConfig'
 ]
 
 MIDDLEWARE = [
@@ -108,6 +108,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.FoodGramUser'
@@ -116,7 +120,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated',
     # ],
-
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ]
@@ -127,8 +131,8 @@ DJOSER = {
         'user_create': 'api.serializers.FoodgramCreateUsersSerializer',
         # 'user': 'api.serializers.FoodgramUsersSerializer',
     },
-    # 'PERMISSIONS': {
-    #     'user': ['rest_framework.permissions.IsAuthenticated'],
-    # },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+    },
     # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email
 }
