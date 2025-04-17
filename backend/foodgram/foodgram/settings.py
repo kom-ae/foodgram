@@ -133,7 +133,7 @@ DJOSER = {
         'current_user': 'api.serializers.FoodgramUsersSerializer',
     },
     'PERMISSIONS': {
-        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        # 'user_list': ['rest_framework.permissions.IsAuthenticated'],
         'user': ['rest_framework.permissions.IsAuthenticated'],
     },
     # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email

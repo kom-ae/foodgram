@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 
 
 User = get_user_model()
@@ -10,7 +11,6 @@ class FoodgramCreateUsersSerializer(UserCreateSerializer):
     """Создай пользователя."""
 
     class Meta(UserCreateSerializer.Meta):
-        model = User
         fields = (
             'email',
             'id',
@@ -26,10 +26,7 @@ class FoodgramUsersSerializer(UserSerializer):
 
     avatar = Base64ImageField(required=False)
 
-    class Meta:
-        model = User
-        # ('email', 'id', 'username', 'first_name', 'last_name')
-        # fields = '__all__'
+    class Meta(UserSerializer.Meta):
         fields = (
             'email',
             'id',

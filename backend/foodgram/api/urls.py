@@ -12,7 +12,8 @@ auth_urls = [
 ]
 urlpatterns = [
     # path('', include(router.urls)),
+    path('users/me/avatar/', FoodGramUsersViewSet.as_view({'put': 'update'})),
+    path('users/<int:pk>/', FoodGramUsersViewSet.as_view({'get': 'retrieve'})),
     path('users/', FoodGramUsersViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('', include(auth_urls)),
-    # path('users/', FoodGramUsersViewSet.as_view({'get': 'list'}))
 ]
