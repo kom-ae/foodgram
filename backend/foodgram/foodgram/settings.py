@@ -129,10 +129,11 @@ REST_FRAMEWORK = {
 DJOSER = {
     'SERIALIZERS': {
         'user_create': 'api.serializers.FoodgramCreateUsersSerializer',
-        # 'user': 'api.serializers.FoodgramUsersSerializer',
+        'user': 'api.serializers.FoodgramUsersSerializer',
         'current_user': 'api.serializers.FoodgramUsersSerializer',
     },
     'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
         'user': ['rest_framework.permissions.IsAuthenticated'],
     },
     # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email
