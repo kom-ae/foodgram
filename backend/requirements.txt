@@ -3,3 +3,5 @@ python-dotenv==1.0.1
 djangorestframework
 djoser
 django-extra-fields
+psycopg2-binary==2.9.3
+Pillow==9.3.0 

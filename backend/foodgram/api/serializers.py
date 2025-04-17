@@ -29,4 +29,12 @@ class FoodgramUsersSerializer(UserSerializer):
     class Meta:
         model = User
         # ('email', 'id', 'username', 'first_name', 'last_name')
-        fields = '__all__'
+        # fields = '__all__'
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'avatar'
+        )
