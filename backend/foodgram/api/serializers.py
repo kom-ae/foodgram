@@ -35,3 +35,19 @@ class FoodgramUsersSerializer(UserSerializer):
             'last_name',
             'avatar'
         )
+
+
+class FoodgramUsersAvatarSerializer(UserSerializer):
+    """Пользователь."""
+
+    avatar = Base64ImageField(required=False)
+
+    class Meta(UserSerializer.Meta):
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'avatar'
+        )
