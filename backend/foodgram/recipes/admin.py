@@ -8,4 +8,3 @@ class TagModelAdmin(admin.ModelAdmin):
     """Админка тэгов."""
 
     list_display = ('name', 'slug')
-()

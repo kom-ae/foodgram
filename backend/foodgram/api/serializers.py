@@ -5,7 +5,6 @@ from rest_framework import serializers
 
 from recipes.models import TagModel
 
-
 User = get_user_model()
 
 
