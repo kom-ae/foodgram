@@ -1,41 +1,19 @@
-from djoser.views import UserViewSet
+from api.serializers import (CreateUsersSerializer, TagSerializer,
+                             UsersAvatarSerializer, UsersSerializer)
 from django.contrib.auth import get_user_model
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from djoser.views import UserViewSet
+from recipes.models import TagModel
 from rest_framework import status, viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-
-from api.serializers import UsersSerializer, CreateUsersSerializer, UsersAvatarSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 User = get_user_model()
 
 
-class UsersViewSet(viewsets.ModelViewSet):
-    """Пользователь."""
-
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    # pk_url_kwarg = 'param'
-
-    def get_object(self):
-        if (self.request.method == 'PUT'
-            and self.action == 'update'
-                and self.kwargs.get('param', '') == 'avatar'):
-            return User.objects.filter(pk=self.request.user.id)
-        return super().get_object()
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return CreateUsersSerializer
-        if (self.request.method == 'PUT'
-            and self.action == 'update'
-                and self.kwargs.get('param', '') == 'avatar'):
-            return UsersAvatarSerializer
-        return super().get_serializer_class()
-
-
 class UsersProfileViewSet(UserViewSet):
+    """Пользователь."""
 
     serializer_class = UsersSerializer
 
@@ -70,8 +48,12 @@ class UsersProfileViewSet(UserViewSet):
                 {'avatar': request.build_absolute_uri(user.avatar.url)},
                 status=status.HTTP_201_CREATED
             )
-        # else:
-        #     return Response(
-        #         serializer.errors,
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
+
+
+class TagsViewSet(viewsets.ModelViewSet):
+    """Тэги."""
+
+    queryset = TagModel.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (AllowAny,)
+    http_method_names = ('get',)

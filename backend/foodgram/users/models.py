@@ -25,8 +25,5 @@ class FoodGramUser(AbstractUser):
         default=None
     )
     password = models.CharField(verbose_name='пароль', max_length=128)
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     USERNAME_FIELD = "email"
-
-    class Meta(AbstractUser.Meta):
-        pass

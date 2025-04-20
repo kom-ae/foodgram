@@ -3,6 +3,8 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from recipes.models import TagModel
+
 
 User = get_user_model()
 
@@ -47,3 +49,11 @@ class UsersAvatarSerializer(serializers.ModelSerializer):
         fields = (
             'avatar',
         )
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Тэг."""
+
+    class Meta:
+        model = TagModel
+        fields = ('id', 'name', 'slug')
