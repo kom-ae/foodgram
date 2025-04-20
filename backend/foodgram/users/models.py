@@ -20,7 +20,7 @@ class FoodGramUser(AbstractUser):
         help_text='Обязательное поле.'
     )
     avatar = models.ImageField(
-        upload_to='users/avatar/',
+        upload_to='users/',
         null=True,
         default=None
     )

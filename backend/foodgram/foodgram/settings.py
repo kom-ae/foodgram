@@ -118,7 +118,7 @@ AUTH_USER_MODEL = 'users.FoodGramUser'
 
 REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
+    #     'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     # ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -128,13 +128,14 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'api.serializers.FoodgramCreateUsersSerializer',
-        'user': 'api.serializers.FoodgramUsersSerializer',
-        'current_user': 'api.serializers.FoodgramUsersSerializer',
+        # 'user_create': 'api.serializers.CreateUsersSerializer',
+        'user': 'api.serializers.UsersSerializer',
+        # 'current_user': 'api.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
-        # 'user_list': ['rest_framework.permissions.IsAuthenticated'],
-        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
+    'HIDE_USERS': False,
     # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email
 }

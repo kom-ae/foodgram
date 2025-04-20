@@ -7,7 +7,7 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class FoodgramCreateUsersSerializer(UserCreateSerializer):
+class CreateUsersSerializer(UserCreateSerializer):
     """Создай пользователя."""
 
     class Meta(UserCreateSerializer.Meta):
@@ -21,7 +21,7 @@ class FoodgramCreateUsersSerializer(UserCreateSerializer):
         )
 
 
-class FoodgramUsersSerializer(UserSerializer):
+class UsersSerializer(UserSerializer):
     """Пользователь."""
 
     avatar = Base64ImageField(required=False)
@@ -37,17 +37,13 @@ class FoodgramUsersSerializer(UserSerializer):
         )
 
 
-class FoodgramUsersAvatarSerializer(UserSerializer):
-    """Пользователь."""
+class UsersAvatarSerializer(serializers.ModelSerializer):
+    """Аватар пользователя."""
 
-    avatar = Base64ImageField(required=False)
+    avatar = Base64ImageField(required=True)
 
-    class Meta(UserSerializer.Meta):
+    class Meta():
+        model = User
         fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'avatar'
+            'avatar',
         )
