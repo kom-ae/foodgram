@@ -5,7 +5,7 @@ from recipes.models import TagModel, IngredientModel
 
 @admin.register(TagModel)
 class TagModelAdmin(admin.ModelAdmin):
-    """Админка тэгов."""
+    """Админка тегов."""
 
     list_display = ('name', 'slug')
     list_editable = ('name', 'slug')

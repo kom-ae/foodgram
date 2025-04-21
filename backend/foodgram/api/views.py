@@ -52,7 +52,7 @@ class UsersProfileViewSet(UserViewSet):
 
 
 class TagsViewSet(viewsets.ModelViewSet):
-    """Тэги."""
+    """Теги."""
 
     queryset = TagModel.objects.all()
     serializer_class = TagSerializer

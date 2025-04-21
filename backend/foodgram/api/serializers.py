@@ -51,7 +51,7 @@ class UsersAvatarSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Тэг."""
+    """Тег."""
 
     class Meta:
         model = TagModel

@@ -1,14 +1,17 @@
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db import models
 
-from constants import TAG_NAME_LENGTH, TAG_SLUG_LENGTH, INGREDIENT_NAME_LENGTH, INGREDIENT_UNIT_LENGTH, RECIPE_NAME_LENGTH
+from constants import (INGREDIENT_NAME_LENGTH, INGREDIENT_UNIT_LENGTH,
+                       MIN_COOKING_TIME, RECIPE_NAME_LENGTH, TAG_NAME_LENGTH,
+                       TAG_SLUG_LENGTH, MSG_COOKING_TIME_ERROR)
+from validators import validate_amount
 
 User = get_user_model()
 
 
 class TagModel(models.Model):
-    """Тэг."""
+    """Тег."""
 
     name = models.CharField(
         verbose_name='Название',
@@ -24,12 +27,12 @@ class TagModel(models.Model):
     )
 
     class Meta:
-        verbose_name = 'тэг'
-        verbose_name_plural = 'Тэги'
+        verbose_name = 'тег'
+        verbose_name_plural = 'Теги'
 
 
 class IngredientModel(models.Model):
-    """Ингедиент."""
+    """Ингредиент."""
 
     name = models.CharField(
         verbose_name='Название',
@@ -55,7 +58,42 @@ class RecipeModel(models.Model):
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
-        validators=[MinValueValidator(1)]
+        validators=[
+            MinValueValidator(
+                MIN_COOKING_TIME,
+                message=MSG_COOKING_TIME_ERROR
+            )
+        ]
     )
     image = models.ImageField(upload_to='recipies/images/')
-    tags = models.Man
+    tags = models.ManyToManyField(TagModel, verbose_name='Тег', blank=True)
+    author = models.ForeignKey(User,
+                               verbose_name='Автор',
+                               on_delete=models.CASCADE
+                               )
+    ingredients = models.ManyToManyField(
+        IngredientModel,
+        through='RecipeIngredient',
+        verbose_name='Ингредиенты'
+    )
+
+    class Meta:
+        verbose_name = 'ингредиенты'
+        verbose_name_plural = 'Ингредиенты'
+        default_related_name = 'recipes'
+
+
+class RecipeIngredient(models.Model):
+    """Рецепт-Ингредиент."""
+
+    recipe = models.ForeignKey(RecipeModel, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(IngredientModel, on_delete=models.CASCADE)
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        validators=[validate_amount]
+    )
+
+    class Meta:
+        verbose_name = 'рецепт-ингредиент'
+        verbose_name_plural = 'Рецепты-Ингредиенты'
+        default_related_name = 'recipesingredients'
