@@ -3,12 +3,12 @@ from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated,
 from rest_framework.response import Response
 
 from api.serializers import (CreateUsersSerializer, TagSerializer,
-                             UsersAvatarSerializer, UsersSerializer)
-from recipes.models import TagModel
+                             UsersAvatarSerializer, UsersSerializer, IngredientSerializer)
+from recipes.models import TagModel, IngredientModel
 
 User = get_user_model()
 
@@ -56,5 +56,14 @@ class TagsViewSet(viewsets.ModelViewSet):
 
     queryset = TagModel.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (AllowAny,)
+    http_method_names = ('get',)
+
+
+class IngredientViewSet(viewsets.ModelViewSet):
+    """Ингредиенты."""
+
+    queryset = IngredientModel.objects.all()
+    serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     http_method_names = ('get',)

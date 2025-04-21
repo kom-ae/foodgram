@@ -3,7 +3,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import TagModel
+from recipes.models import TagModel, IngredientModel
 
 User = get_user_model()
 
@@ -56,3 +56,11 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagModel
         fields = ('id', 'name', 'slug')
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    """Ингредиент."""
+
+    class Meta:
+        model = IngredientModel
+        fields = ('id', 'name', 'measurement_unit')
