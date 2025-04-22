@@ -3,8 +3,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from constants import (INGREDIENT_NAME_LENGTH, INGREDIENT_UNIT_LENGTH,
-                       MIN_COOKING_TIME, RECIPE_NAME_LENGTH, TAG_NAME_LENGTH,
-                       TAG_SLUG_LENGTH, MSG_COOKING_TIME_ERROR)
+                       MIN_COOKING_TIME, MSG_COOKING_TIME_ERROR,
+                       RECIPE_NAME_LENGTH, TAG_NAME_LENGTH, TAG_SLUG_LENGTH)
+from utils import get_trim_line
 from validators import validate_amount
 
 User = get_user_model()
@@ -30,6 +31,9 @@ class TagModel(models.Model):
         verbose_name = 'тег'
         verbose_name_plural = 'Теги'
 
+    def __str__(self):
+        return self.name
+
 
 class IngredientModel(models.Model):
     """Ингредиент."""
@@ -47,14 +51,30 @@ class IngredientModel(models.Model):
         verbose_name = 'ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
+    def __str__(self):
+        return get_trim_line(self.name)
+
 
 class RecipeModel(models.Model):
     """Рецепт."""
 
+    tags = models.ManyToManyField(TagModel, verbose_name='Тег', blank=True)
+    author = models.ForeignKey(User,
+                               verbose_name='Автор',
+                               on_delete=models.CASCADE,
+                               db_index=True
+                               )
+    ingredients = models.ManyToManyField(
+        IngredientModel,
+        through='RecipeIngredientModel',
+        verbose_name='Ингредиенты'
+    )
     name = models.CharField(
         verbose_name='Название',
         max_length=RECIPE_NAME_LENGTH,
+        db_index=True
     )
+    image = models.ImageField(upload_to='recipies/images/')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
@@ -65,25 +85,20 @@ class RecipeModel(models.Model):
             )
         ]
     )
-    image = models.ImageField(upload_to='recipies/images/')
-    tags = models.ManyToManyField(TagModel, verbose_name='Тег', blank=True)
-    author = models.ForeignKey(User,
-                               verbose_name='Автор',
-                               on_delete=models.CASCADE
-                               )
-    ingredients = models.ManyToManyField(
-        IngredientModel,
-        through='RecipeIngredient',
-        verbose_name='Ингредиенты'
-    )
 
     class Meta:
-        verbose_name = 'ингредиенты'
-        verbose_name_plural = 'Ингредиенты'
+        verbose_name = 'рецепт'
+        verbose_name_plural = 'Рецепты'
         default_related_name = 'recipes'
 
+    def __str__(self):
+        return '{} - {}'.format(
+            get_trim_line(self.name),
+            self.author.last_name
+        )
 
-class RecipeIngredient(models.Model):
+
+class RecipeIngredientModel(models.Model):
     """Рецепт-Ингредиент."""
 
     recipe = models.ForeignKey(RecipeModel, on_delete=models.CASCADE)
@@ -97,3 +112,6 @@ class RecipeIngredient(models.Model):
         verbose_name = 'рецепт-ингредиент'
         verbose_name_plural = 'Рецепты-Ингредиенты'
         default_related_name = 'recipesingredients'
+
+    def __str__(self):
+        return '{} - {}'.format(self.recipe, self.ingredient)
