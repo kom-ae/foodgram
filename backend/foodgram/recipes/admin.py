@@ -11,10 +11,24 @@ class TagModelAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class RecipeIngredientInLine(admin.TabularInline):
+    """InLine представление промежуточной модели рецептов и ингредиентов."""
+    verbose_name = 'ингредиент'
+    verbose_name_plural = 'Ингредиенты'
+    model = RecipeIngredientModel
+    extra = 0
+    fields = ('recipe', 'ingredient', 'get_unit', 'amount')
+    readonly_fields = ('get_unit',)
+
+    @admin.display(description='Единицы измерения')
+    def get_unit(self, obj):
+        return obj.ingredient.measurement_unit
+
 @admin.register(IngredientModel)
 class IngredientModelAdmin(admin.ModelAdmin):
     """Админка ингредиентов."""
 
+    inlines = (RecipeIngredientInLine,)
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
     list_editable = ('measurement_unit',)
@@ -24,23 +38,26 @@ class IngredientModelAdmin(admin.ModelAdmin):
 class RecipeModelAdmin(admin.ModelAdmin):
     """Админка рецептов."""
 
+    inlines = (RecipeIngredientInLine,)
     list_display = ('name', 'author')
     search_fields = ('name', 'author')
     list_filter = ('tags',)
-    filter_horizontal = ('ingredients', 'tags')
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "ingredients":
-            kwargs["queryset"] = Car.objects.filter(owner=request.user)
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+    filter_horizontal = ('tags',)
 
 
 @admin.register(RecipeIngredientModel)
 class RecipeIngredientModelAdmin(admin.ModelAdmin):
     """Админка рецепт - ингредиент."""
 
-    list_display = ('recipe', 'ingredient', 'amount')
+    list_display = ('recipe', 'ingredient', 'get_unit', 'amount')
     search_fields = ('recipe', 'ingredient')
     list_filter = ('recipe',)
+    fields = ('recipe', 'ingredient', 'get_unit', 'amount')
+    readonly_fields = ('get_unit',)
+
+    @admin.display(description='Единицы измерения.')
+    def get_unit(self, obj):
+        return obj.ingredient.measurement_unit
 
 
 admin.site.empty_value_display = '-пусто-'

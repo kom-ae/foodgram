@@ -40,7 +40,8 @@ class IngredientModel(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=INGREDIENT_NAME_LENGTH
+        max_length=INGREDIENT_NAME_LENGTH,
+        db_index=True
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы измерения',
@@ -58,17 +59,11 @@ class IngredientModel(models.Model):
 class RecipeModel(models.Model):
     """Рецепт."""
 
-    tags = models.ManyToManyField(TagModel, verbose_name='Тег', blank=True)
     author = models.ForeignKey(User,
                                verbose_name='Автор',
                                on_delete=models.CASCADE,
                                db_index=True
                                )
-    ingredients = models.ManyToManyField(
-        IngredientModel,
-        through='RecipeIngredientModel',
-        verbose_name='Ингредиенты'
-    )
     name = models.CharField(
         verbose_name='Название',
         max_length=RECIPE_NAME_LENGTH,
@@ -76,6 +71,12 @@ class RecipeModel(models.Model):
     )
     image = models.ImageField(upload_to='recipies/images/')
     text = models.TextField(verbose_name='Описание')
+    ingredients = models.ManyToManyField(
+        IngredientModel,
+        through='RecipeIngredientModel',
+        verbose_name='Ингредиенты'
+    )
+    tags = models.ManyToManyField(TagModel, verbose_name='Тег')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
         validators=[
@@ -92,17 +93,25 @@ class RecipeModel(models.Model):
         default_related_name = 'recipes'
 
     def __str__(self):
-        return '{} - {}'.format(
+        return '{}. Автор: {}'.format(
             get_trim_line(self.name),
-            self.author.last_name
+            self.author.first_name
         )
 
 
 class RecipeIngredientModel(models.Model):
     """Рецепт-Ингредиент."""
 
-    recipe = models.ForeignKey(RecipeModel, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(IngredientModel, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        RecipeModel,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE
+    )
+    ingredient = models.ForeignKey(
+        IngredientModel,
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE
+    )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=[validate_amount]
@@ -112,6 +121,15 @@ class RecipeIngredientModel(models.Model):
         verbose_name = 'рецепт-ингредиент'
         verbose_name_plural = 'Рецепты-Ингредиенты'
         default_related_name = 'recipesingredients'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='Unique recipe-ingredient constraint',
+            ),
+        )
 
     def __str__(self):
-        return '{} - {}'.format(self.recipe, self.ingredient)
+        return '{} - {}'.format(
+            get_trim_line(self.recipe.name),
+            self.ingredient
+        )
