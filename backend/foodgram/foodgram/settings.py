@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'api.apps.ApiConfig',
-    'shopping_cart.apps.ShoppingCartConfig',
+    'favorite_cart.apps.FavoriteCartConfig',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
 ]

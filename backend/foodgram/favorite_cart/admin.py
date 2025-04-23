@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from recipes.models import RecipeModel
-from shopping_cart.models import ShoppingCartModel
+from favorite_cart.models import ShoppingCartModel
 from utils import get_trim_line
 
 
