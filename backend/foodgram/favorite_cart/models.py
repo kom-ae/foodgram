@@ -25,7 +25,7 @@ class FavoriteCartAbstractModel(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('recipe', 'user'),
-                name='Unique recipe_user constraint',
+                name='Unique recipe_user constraint, %(app_label)s_%(class)s',
             ),
         )
 
@@ -38,9 +38,17 @@ class FavoriteCartAbstractModel(models.Model):
 class ShoppingCartModel(FavoriteCartAbstractModel):
     """Список покупок."""
 
+    class Meta(FavoriteCartAbstractModel.Meta):
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'Списки покупок'
+
 
 class FavoriteCartModel(FavoriteCartAbstractModel):
     """Избранное."""
+
+    class Meta(FavoriteCartAbstractModel.Meta):
+        verbose_name = 'избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
 
 # class ShoppingCartModel(models.Model):

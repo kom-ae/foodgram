@@ -10,8 +10,10 @@ class FoodGramUserAdmin(UserAdmin):
 
     search_fields = ('email', 'username')
 
+
 @admin.register(SubscribeModel)
 class SubscribeModelAdmin(admin.ModelAdmin):
     """Админка подписок."""
 
-    
+    list_display = ('user', 'target')
+    search_fields = ('user__email', 'target__email')

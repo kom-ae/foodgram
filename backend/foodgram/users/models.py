@@ -1,5 +1,8 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+
+from constants import FIRST_NAME_LENGTH, LAST_NAME_LENGTH
 
 
 class FoodGramUser(AbstractUser):
@@ -7,12 +10,12 @@ class FoodGramUser(AbstractUser):
 
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=150,
+        max_length=FIRST_NAME_LENGTH,
         help_text='Обязательное поле.'
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=150,
+        max_length=LAST_NAME_LENGTH,
         help_text='Обязательное поле.')
     email = models.EmailField(
         verbose_name='email address',
@@ -50,10 +53,19 @@ class SubscribeModel(models.Model):
         verbose_name_plural = 'Подписчики'
         constraints = (
             models.CheckConstraint(
-                check=models.Q(user__neq=models.F('target')),
-                name='user_and_target_different'),
+                check=~models.Q(user=models.F('target')),
+                name='user_and_target_different',
+                violation_error_message='Нельзя подписаться на себя.'
+            ),
             models.UniqueConstraint(
                 fields=('user', 'target'),
                 name='Unique user-target constraint',
             ),
         )
+
+    def clean(self):
+        if self.user == self.target:
+            raise ValidationError(
+                {'target': 'Нельзя подписаться на себя.'}
+            )
+        return super().clean()
