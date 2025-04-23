@@ -22,7 +22,7 @@ class RecipeIngredientInLine(admin.TabularInline):
 
     @admin.display(description='Единицы измерения')
     def get_unit(self, obj):
-        return obj.ingredient.measurement_unit
+                return obj.ingredient.measurement_unit
 
 @admin.register(IngredientModel)
 class IngredientModelAdmin(admin.ModelAdmin):

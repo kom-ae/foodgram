@@ -30,6 +30,7 @@ class TagModel(models.Model):
     class Meta:
         verbose_name = 'тег'
         verbose_name_plural = 'Теги'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -51,6 +52,13 @@ class IngredientModel(models.Model):
     class Meta:
         verbose_name = 'ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='Unique Ingredient-measurement_unit constraint'
+            ),
+        )
 
     def __str__(self):
         return get_trim_line(self.name)
@@ -91,6 +99,7 @@ class RecipeModel(models.Model):
         verbose_name = 'рецепт'
         verbose_name_plural = 'Рецепты'
         default_related_name = 'recipes'
+        ordering = ('name',)
 
     def __str__(self):
         return '{}. Автор: {}'.format(

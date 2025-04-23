@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from constants import RECIPE_NAME_LENGTH
+from recipes.models import RecipeModel
 
 User = get_user_model()
 
@@ -9,17 +9,37 @@ User = get_user_model()
 class ShoppingCartModel(models.Model):
     """Список покупок."""
 
-    id = models.BigAutoField(primary_key=True)
+    recipe = models.ForeignKey(
+        RecipeModel,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE
+    )
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',
         on_delete=models.CASCADE
     )
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=RECIPE_NAME_LENGTH
-    )
-    image = models.URLField(verbose_name='Изображение')
-    cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления (в минутах)'
-    )
+    # name = models.CharField(
+    #     verbose_name='Название',
+    #     max_length=SHOP_CART_NAME_LENGTH
+    # )
+    # image = models.URLField(verbose_name='Изображение')
+    # cooking_time = models.PositiveSmallIntegerField(
+    #     verbose_name='Время приготовления (в минутах)'
+    # )
+
+    class Meta:
+        verbose_name = 'список покупок'
+        verbose_name_plural = 'Списки покупок'
+        default_related_name = 'shopping_cart'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'user'),
+                name='Unique ShoppingCart constraint',
+            ),
+        )
+
+    def __str__(self):
+        return '{}. У пользователя: {}'.format(
+            self.recipe, self.user
+        )
