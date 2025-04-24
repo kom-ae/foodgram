@@ -77,7 +77,7 @@ class RecipeModel(models.Model):
         max_length=RECIPE_NAME_LENGTH,
         db_index=True
     )
-    image = models.ImageField(upload_to='recipies/images/')
+    image = models.ImageField(upload_to='recipes/images/')
     text = models.TextField(verbose_name='Описание')
     ingredients = models.ManyToManyField(
         IngredientModel,

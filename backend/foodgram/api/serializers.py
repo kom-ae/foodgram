@@ -73,8 +73,17 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = IngredientModel
         fields = ('id', 'name', 'measurement_unit')
 
-    def to_representation(self, instance):
-        return super().to_representation(instance)
+
+class IngredientInRecipe(IngredientSerializer):
+    """Ингредиенты в рецепте."""
+
+    amount = serializers.SerializerMethodField()
+
+    class Meta(IngredientSerializer.Meta):
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def get_amount(self, obj):
+        return obj.recipesingredients.get().amount
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -82,13 +91,24 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True, read_only=True)
     author = UsersSerializer(read_only=True)
-    ingredients = IngredientSerializer(many=True, read_only=True)
-    # ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientInRecipe(many=True, read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipeModel
-        fields = ('id', 'tags', 'author', 'ingredients')
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart',
+                  'name', 'image', 'text', 'cooking_time')
 
-    # def get_ingredients(self, obj):
-    #     dd = IngredientSerializer(many=True, read_only=True)
-    #     return True
+    def _get_exists(self, reverse_link) -> bool:
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return reverse_link.all().filter(user_id=user.id).exists()
+        return False
+
+    def get_is_favorited(self, obj):
+        return self._get_exists(obj.favorites_carts)
+
+    def get_is_in_shopping_cart(self, obj):
+        return self._get_exists(obj.shoppings_carts)
