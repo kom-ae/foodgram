@@ -6,9 +6,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from api.serializers import (CreateUsersSerializer, TagSerializer,
-                             UsersAvatarSerializer, UsersSerializer, IngredientSerializer)
-from recipes.models import TagModel, IngredientModel
+from api.serializers import (CreateUsersSerializer, IngredientSerializer,
+                             RecipeSerializer, TagSerializer,
+                             UsersAvatarSerializer, UsersSerializer)
+from recipes.models import IngredientModel, RecipeModel, TagModel
 
 User = get_user_model()
 
@@ -67,3 +68,10 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     http_method_names = ('get',)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """Рецепт."""
+
+    queryset = RecipeModel.objects.all()
+    serializer_class = RecipeSerializer
