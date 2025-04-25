@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, render
+from django.db.models import Exists, OuterRef
+from django_filters import rest_framework as filters
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -10,6 +12,7 @@ from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeSerializer, TagSerializer,
                              UsersAvatarSerializer, UsersSerializer)
 from recipes.models import IngredientModel, RecipeModel, TagModel
+from favorite_cart.models import FavoriteCartModel
 
 User = get_user_model()
 
@@ -75,3 +78,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = RecipeModel.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('is_favorited',)
+
+    def get_queryset(self):
+        return RecipeModel.objects.all().annotate(
+            is_favorites=Exists(
+                FavoriteCartModel.objects.filter(
+                    recipe=OuterRef('id'), user=self.request.user
+                )
+            )
+        )
