@@ -3,7 +3,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import TagModel, IngredientModel, RecipeModel
+from recipes.models import TagModel, IngredientModel, RecipeModel, RecipeIngredientModel
 
 User = get_user_model()
 
@@ -40,6 +40,8 @@ class UsersSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        if not self.context.get('request'):
+            return False
         user = self.context['request'].user
         if user.is_authenticated:
             return user.subscriber.all().filter(target_id=obj.id).exists()
@@ -74,7 +76,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientInRecipe(IngredientSerializer):
+class IngredientInRecipe_old(IngredientSerializer):
     """Ингредиенты в рецепте."""
 
     amount = serializers.SerializerMethodField()
@@ -84,6 +86,27 @@ class IngredientInRecipe(IngredientSerializer):
 
     def get_amount(self, obj):
         return obj.recipesingredients.get().amount
+
+
+class IngredientInRecipe(serializers.ModelSerializer):
+    """Ингредиенты в рецепте."""
+
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RecipeIngredientModel
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def get_name(self, obj):
+        return obj.name
+    
+    def get_measurement_unit(self, obj):
+        return obj.measurement_unit
+
+    def get_amount(self, obj):
+        return obj.recipesingredients.get(recipe=obj.recipe).amount
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -108,7 +131,34 @@ class RecipeSerializer(serializers.ModelSerializer):
         return False
 
     def get_is_favorited(self, obj):
-        return self._get_exists(obj.favorites_carts)
+        return self._get_exists(obj.favorites)
 
     def get_is_in_shopping_cart(self, obj):
         return self._get_exists(obj.shoppings_carts)
+
+
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    """Создай рецепт."""
+
+    image = Base64ImageField(required=True)
+
+    class Meta:
+        model = RecipeModel
+        fields = '__all__'
+        read_only_fields = ('author',)
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = RecipeModel.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        for ingredient in ingredients:
+            RecipeIngredientModel.objects.create(
+                recipe=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount']
+            )
+        return recipe
+
+    def to_representation(self, instance):
+        return RecipeSerializer(instance).data

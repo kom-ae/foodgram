@@ -1,18 +1,21 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404, render
 from django.db.models import Exists, OuterRef
+from django.shortcuts import get_object_or_404, render
 from django_filters import rest_framework as filters
 from djoser.views import UserViewSet
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
+from api.filters import RecipeFilter
 from api.serializers import (CreateUsersSerializer, IngredientSerializer,
-                             RecipeSerializer, TagSerializer,
-                             UsersAvatarSerializer, UsersSerializer)
+                             RecipeCreateSerializer, RecipeSerializer,
+                             TagSerializer, UsersAvatarSerializer,
+                             UsersSerializer)
+from favorite_cart.models import FavoriteCartModel, ShoppingCartModel
 from recipes.models import IngredientModel, RecipeModel, TagModel
-from favorite_cart.models import FavoriteCartModel
 
 User = get_user_model()
 
@@ -78,14 +81,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = RecipeModel.objects.all()
     serializer_class = RecipeSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('is_favorited',)
+    filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        return RecipeModel.objects.all().annotate(
-            is_favorites=Exists(
-                FavoriteCartModel.objects.filter(
-                    recipe=OuterRef('id'), user=self.request.user
-                )
-            )
-        )
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
+
+    def perform_create(self, serializer):
+        return serializer.save(author=self.request.user, ingredients=self.request.data['ingredients'])
+
+
+    # def get_queryset(self):
+    #     return RecipeModel.objects.all().annotate(
+    #         is_favorited=Exists(
+    #             FavoriteCartModel.objects.filter(
+    #                 recipe=OuterRef('id'), user=self.request.user)
+    #         )
+    #     ).annotate(
+    #         is_in_shopping_cart=Exists(
+    #             ShoppingCartModel.objects.filter(
+    #                 recipe=OuterRef('id'), user=self.request.user
+    #             )
+    #         )
+    #     )

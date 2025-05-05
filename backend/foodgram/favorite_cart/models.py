@@ -50,7 +50,7 @@ class FavoriteCartModel(FavoriteCartAbstractModel):
     class Meta(FavoriteCartAbstractModel.Meta):
         verbose_name = 'избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
-        default_related_name = 'favorites_carts'
+        default_related_name = 'favorites'
 
 
 # class ShoppingCartModel(models.Model):

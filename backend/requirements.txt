@@ -2,6 +2,7 @@ Django==3.2.16
 django-filter==23.1
 djangorestframework
 django-extra-fields
+django-filter==23.1
 djoser
 python-dotenv==1.0.1
 psycopg2-binary==2.9.3
