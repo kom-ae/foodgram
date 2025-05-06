@@ -10,6 +10,7 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
 from rest_framework.response import Response
 
 from api.filters import RecipeFilter
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
                              TagSerializer, UsersAvatarSerializer,
@@ -76,12 +77,16 @@ class IngredientViewSet(viewsets.ModelViewSet):
     http_method_names = ('get',)
 
 
+class FavoriteModel(viewsets.ModelViewSet):
+    """Избранное."""
+
+
 class RecipeViewSet(viewsets.ModelViewSet):
     """Рецепт."""
 
     queryset = RecipeModel.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -91,7 +96,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateSerializer
 
     def perform_create(self, serializer):
-        return serializer.save(author=self.request.user, ingredients=self.request.data['ingredients'])
+        return serializer.save(author=self.request.user)
+
 
 
     # def get_queryset(self):
