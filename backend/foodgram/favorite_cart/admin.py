@@ -1,10 +1,10 @@
 from django.contrib import admin
 
 from recipes.models import RecipeModel
-from favorite_cart.models import ShoppingCartModel, FavoriteCartModel
+from favorite_cart.models import ShoppingCartModel, FavoriteModel
 
 
-@admin.register(ShoppingCartModel, FavoriteCartModel)
+@admin.register(ShoppingCartModel, FavoriteModel)
 class ShoppingCartModelAdmin(admin.ModelAdmin):
     """Админка списка покупок."""
 

@@ -6,6 +6,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from recipes.models import TagModel, IngredientModel, RecipeModel, RecipeIngredientModel
+from favorite_cart.models import FavoriteModel
 from api.validators import validate_ingredients as val_ingr
 
 User = get_user_model()
@@ -43,8 +44,6 @@ class UsersSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        # if not self.context.get('request'):
-        #     return False
         user = self.context['request'].user
         if user.is_authenticated:
             return user.subscriber.all().filter(target_id=obj.id).exists()
@@ -92,6 +91,30 @@ class IngredientInRecipe(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
+# class FavoriteSerializer(serializers.ModelSerializer):
+#     """Избранное."""
+
+#     name = serializers.ReadOnlyField(source='recipe.name')
+#     image = serializers.SerializerMethodField()
+#     cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
+
+#     class Meta:
+#         model = FavoriteModel
+#         fields = ('id', 'name', 'image', 'cooking_time')
+
+#     def get_image(self, obj):
+#         return self.context['request'].build_absolute_uri(obj.recipe.image.url)
+
+#     def validate(self, attrs):
+#         recipec_id = self.context['view'].kwargs.get('recipe_id')
+#         user = self.context['request'].user
+#         if FavoriteModel.objects.filter(recipe=recipec_id, user=user).exists():
+#             raise serializers.ValidationError(
+#                 'Рецепт уже добавлен в избранное.'
+#             )
+#         return attrs
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Рецепт."""
 
@@ -101,7 +124,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField(required=True, use_url=True)
-    # image = serializers.SerializerMethodField()
+
 
     class Meta:
         model = RecipeModel
@@ -110,8 +133,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'name', 'image', 'text', 'cooking_time')
 
     def _get_exists(self, reverse_link) -> bool:
-        # if not self.context.get('request'):
-        #     return False
         user = self.context['request'].user
         if user.is_authenticated:
             return reverse_link.all().filter(user_id=user.id).exists()
@@ -122,10 +143,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_in_shopping_cart(self, obj):
         return self._get_exists(obj.shoppings_carts)
-
-    # def get_image(self, obj):
-    #     return obj.image.url
-    #     print(obj)
 
 
 class Ingredients(serializers.Serializer):
@@ -197,7 +214,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.tags.set(validated_data.get('tags', instance.tags))
         instance.save()
         return instance
-        # return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         return RecipeSerializer(

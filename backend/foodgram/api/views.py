@@ -15,7 +15,7 @@ from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
                              TagSerializer, UsersAvatarSerializer,
                              UsersSerializer)
-from favorite_cart.models import FavoriteCartModel, ShoppingCartModel
+from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import IngredientModel, RecipeModel, TagModel
 
 User = get_user_model()
@@ -77,10 +77,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     http_method_names = ('get',)
 
 
-class FavoriteModel(viewsets.ModelViewSet):
-    """Избранное."""
-
-
 class RecipeViewSet(viewsets.ModelViewSet):
     """Рецепт."""
 
@@ -89,6 +85,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -98,18 +95,78 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
 
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        url_path='favorite',
+        permission_classes=(IsAuthenticated,)
+    )
+    def favorite(self, request, *args, **kwargs):
+        recipe = self.get_object()
+        user = request.user
+
+        if request.method == 'POST':
+            if FavoriteModel.objects.filter(recipe=recipe, user=user).exists():
+                return Response(
+                    {'detail': 'Рецепт уже добавлен в избранное.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            fav_instance = user.favorites.create(recipe=recipe)
+            return Response(
+                {
+                    'id': fav_instance.id,
+                    'name': recipe.name,
+                    'image': request.build_absolute_uri(recipe.image.url),
+                    'cooking_time': recipe.cooking_time
+                },
+                status=status.HTTP_201_CREATED
+            )
+        if request.method == 'DELETE':
+            fav_instance = FavoriteModel.objects.filter(
+                user=user,
+                recipe=recipe
+            )
+            if not fav_instance:
+                return Response(
+                    {'detail': 'Рецепт в избранном не найден.'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            fav_instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
 
 
-    # def get_queryset(self):
-    #     return RecipeModel.objects.all().annotate(
-    #         is_favorited=Exists(
-    #             FavoriteCartModel.objects.filter(
-    #                 recipe=OuterRef('id'), user=self.request.user)
-    #         )
-    #     ).annotate(
-    #         is_in_shopping_cart=Exists(
-    #             ShoppingCartModel.objects.filter(
-    #                 recipe=OuterRef('id'), user=self.request.user
-    #             )
-    #         )
-    #     )
+
+# class FavoriteModelViewSet(viewsets.ModelViewSet):
+#     """Избранное."""
+
+#     queryset = FavoriteModel.objects.all()
+#     permission_classes = (IsAuthenticated,)
+#     # http_method_names = ['post', 'delete']
+
+#     def get_serializer_class(self):
+#         if self.request.method == 'POST':
+#             return FavoriteSerializer
+#         return FavoriteDeleteSerializer
+
+#     def _get_recipe(self):
+#         return get_object_or_404(
+#             RecipeModel, pk=self.kwargs.get('recipe_id')
+#         )
+
+#     @action(methods=['DELETE'], detail=False, url_path='favorite')
+#     def favorite(self, request, *args, **kwargs):
+#         pass
+
+#     # def get_object(self):
+#     #     user = self.request.user
+#     #     recipe = self._get_recipe()
+#     #     return get_object_or_404(FavoriteModel, user=user, recipe=recipe)
+
+#     def perform_create(self, serializer):
+#         return serializer.save(
+#             user=self.request.user,
+#             recipe=self._get_recipe()
+#         )
+
+#     def perform_destroy(self, instance):
+#         return super().perform_destroy(instance)

@@ -44,7 +44,7 @@ class ShoppingCartModel(FavoriteCartAbstractModel):
         default_related_name = 'shoppings_carts'
 
 
-class FavoriteCartModel(FavoriteCartAbstractModel):
+class FavoriteModel(FavoriteCartAbstractModel):
     """Избранное."""
 
     class Meta(FavoriteCartAbstractModel.Meta):
