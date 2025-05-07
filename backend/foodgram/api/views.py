@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import F
 from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404, render
 from django_filters import rest_framework as filters
@@ -14,7 +15,7 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
                              TagSerializer, UsersAvatarSerializer,
-                             UsersSerializer)
+                             UsersSerializer, SubscribedUserSerializer)
 from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import IngredientModel, RecipeModel, TagModel
 
@@ -57,6 +58,29 @@ class UsersProfileViewSet(UserViewSet):
                 {'avatar': request.build_absolute_uri(user.avatar.url)},
                 status=status.HTTP_201_CREATED
             )
+
+    @action(
+        methods=['get', 'post', 'delete'],
+        detail=False,
+        url_path='subscriptions',
+        permission_classes=(IsAuthenticated,)
+    )
+    def subscriptions(self, request, *args, **kwargs):
+        user = request.user
+        subscriptions = User.objects.filter(
+            pk__in=user.subscriber.values_list('target', flat=True)
+        )
+        page = self.paginate_queryset(subscriptions)
+        if page is not None:
+            serializer = SubscribedUserSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+        serializer = SubscribedUserSerializer(
+            subscriptions, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class TagsViewSet(viewsets.ModelViewSet):
@@ -106,7 +130,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if request.method == 'POST':
-            if FavoriteModel.objects.filter(recipe=recipe, user=user).exists():
+            if user.favorites.filter(recipe=recipe).exists():
                 return Response(
                     {'detail': 'Рецепт уже добавлен в избранное.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -122,18 +146,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED
             )
         if request.method == 'DELETE':
-            fav_instance = FavoriteModel.objects.filter(
-                user=user,
-                recipe=recipe
-            )
+            fav_instance = user.favorites.filter(recipe=recipe)
             if not fav_instance:
                 return Response(
                     {'detail': 'Рецепт в избранном не найден.'},
                     status=status.HTTP_400_BAD_REQUEST)
             fav_instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
-
 
 
 # class FavoriteModelViewSet(viewsets.ModelViewSet):

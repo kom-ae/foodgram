@@ -1,19 +1,15 @@
 from django.urls import include, path
-from rest_framework.routers import SimpleRouter, DefaultRouter
+from rest_framework.routers import SimpleRouter
 
 from api.views import (IngredientViewSet, RecipeViewSet, TagsViewSet,
                        UsersProfileViewSet)
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register('users', UsersProfileViewSet, basename='users')
+# router.register('users/subscriptions',, basename='subscriptions')
 router.register('tags', TagsViewSet, basename='tags')
 router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('recipes', RecipeViewSet, basename='recipes')
-# router.register(
-#     'recipes/(?P<recipe_id>\d+)/favorite',
-#     FavoriteModelViewSet,
-#     basename='favorite'
-# ) 
 
 auth_urls = [
     path('', include('djoser.urls')),

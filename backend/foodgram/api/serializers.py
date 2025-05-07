@@ -50,6 +50,41 @@ class UsersSerializer(UserSerializer):
         return False
 
 
+class RecipeMinifiedSerializer(serializers.ModelSerializer):
+    """Уточненный рецепт."""
+    image = Base64ImageField()
+
+    class Meta:
+        model = RecipeModel
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class SubscribedUserSerializer(UsersSerializer):
+    """Подписки."""
+
+    recipes = RecipeMinifiedSerializer(read_only=True, many=True)
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta(UsersSerializer.Meta):
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'avatar',
+            'recipes_count'
+        )
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+
+
+
+
 class UsersAvatarSerializer(serializers.ModelSerializer):
     """Аватар пользователя."""
 
