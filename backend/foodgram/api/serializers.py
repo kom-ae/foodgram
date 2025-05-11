@@ -1,13 +1,15 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from django.urls import reverse
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import TagModel, IngredientModel, RecipeModel, RecipeIngredientModel
-from favorite_cart.models import FavoriteModel
 from api.validators import validate_ingredients as val_ingr
+from api.validators import validate_tags
+from favorite_cart.models import FavoriteModel
+from recipes.models import (IngredientModel, RecipeIngredientModel,
+                            RecipeModel, TagModel)
 
 User = get_user_model()
 
@@ -34,11 +36,11 @@ class UsersSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         fields = (
-            'email',
             'id',
             'username',
             'first_name',
             'last_name',
+            'email',
             'is_subscribed',
             'avatar'
         )
@@ -58,11 +60,14 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
         model = RecipeModel
         fields = ('id', 'name', 'image', 'cooking_time')
 
+    def get_recipes(self, obj):
+        pass
+
 
 class SubscribedUserSerializer(UsersSerializer):
     """Подписки."""
 
-    recipes = RecipeMinifiedSerializer(read_only=True, many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(UsersSerializer.Meta):
@@ -81,8 +86,12 @@ class SubscribedUserSerializer(UsersSerializer):
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
-
-
+    def get_recipes(self, obj):
+        recipes_limit = self.context.get('recipes_limit')
+        recipes = obj.recipes.all()
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        return RecipeMinifiedSerializer(recipes, many=True).data
 
 
 class UsersAvatarSerializer(serializers.ModelSerializer):
@@ -164,12 +173,18 @@ class Ingredients(serializers.Serializer):
     class Meta:
         fields = ('id', 'amount')
 
+    # def validate_id(self, value):
+    #     if not IngredientModel.objects.filter(pk=value).exists():
+    #         raise serializers.ValidationError('Ингредиента нет в базе.')
+
+
+
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    """Создай рецепт."""
+    """Создай, обнови рецепт."""
 
     image = Base64ImageField(required=True, use_url=True)
-    ingredients = Ingredients(many=True)
+    ingredients = Ingredients(required=True, many=True)
 
     class Meta:
         model = RecipeModel
@@ -185,6 +200,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, value):
         return val_ingr(value)
+
+    def validate_tags(self, value):
+        return validate_tags(value)
+
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError('Не передана картинка рецепта.')
+        return value
+
+    def validate(self, data):
+        if not data.get('tags') or not data.get('ingredients'):
+            raise serializers.ValidationError('Переданы не все данные.')
+        return data
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')

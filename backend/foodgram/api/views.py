@@ -5,9 +5,12 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from rest_framework import filters as rf_filters
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
@@ -30,6 +33,7 @@ class UsersProfileViewSet(UserViewSet):
     """Пользователь."""
 
     serializer_class = UsersSerializer
+    # pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -60,7 +64,7 @@ class UsersProfileViewSet(UserViewSet):
             user.save()
             return Response(
                 {'avatar': request.build_absolute_uri(user.avatar.url)},
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_200_OK
             )
 
     @action(
@@ -80,11 +84,24 @@ class UsersProfileViewSet(UserViewSet):
             serializer = SubscribedUserSerializer(
                 page,
                 many=True,
-                context={'request': request}
+                context={
+                    'request': request,
+                    'recipes_limit': request.query_params.get(
+                        'recipes_limit'
+                    )
+                }
             )
             return self.get_paginated_response(serializer.data)
         serializer = SubscribedUserSerializer(
-            subscriptions, many=True, context={'request': request})
+            subscriptions,
+            many=True,
+            context={
+                'request': request,
+                'recipes_limit': request.query_params.get(
+                    'recipes_limit'
+                )
+            }
+        )
         return Response(serializer.data)
 
     @action(
@@ -111,16 +128,22 @@ class UsersProfileViewSet(UserViewSet):
             user.subscriber.create(target=target)
             serializer = SubscribedUserSerializer(
                 target,
-                context={'request': request}
+                context={
+                    'request': request,
+                    'recipes_limit': request.query_params.get(
+                        'recipes_limit'
+                    )
+                }
             )
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             subscriber_instance = user.subscriber.filter(target=target)
             if subscriber_instance:
                 subscriber_instance.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
-                {'detail': 'На этого пользователя не подписаны.'}
+                {'detail': 'На этого пользователя не подписаны.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -130,6 +153,7 @@ class TagsViewSet(viewsets.ModelViewSet):
     queryset = TagModel.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
+    pagination_class = None
     http_method_names = ('get',)
 
 
@@ -138,7 +162,10 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
     queryset = IngredientModel.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend,)
     permission_classes = (AllowAny,)
+    pagination_class = None
+    filterset_fields = ('name',)
     http_method_names = ('get',)
 
 
@@ -182,7 +209,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe,
                 context={'request': request}
             )
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             fav_instance = user.favorites.filter(recipe=recipe)
             if fav_instance:
@@ -256,13 +283,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe,
                 context={'request': request}
             )
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             if shoppings_carts_inst.exists():
                 shoppings_carts_inst.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
-                {'detail': 'Рецепта не было в списке покупок.'}
+                {'detail': 'Рецепта не было в списке покупок.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 
