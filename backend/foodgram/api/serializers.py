@@ -74,8 +74,8 @@ class SubscribedUserSerializer(UsersSerializer):
             'last_name',
             'is_subscribed',
             'recipes',
-            'avatar',
-            'recipes_count'
+            'recipes_count',
+            'avatar'
         )
 
     def get_recipes_count(self, obj):
@@ -124,30 +124,6 @@ class IngredientInRecipe(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = RecipeIngredientModel
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-
-# class FavoriteSerializer(serializers.ModelSerializer):
-#     """Избранное."""
-
-#     name = serializers.ReadOnlyField(source='recipe.name')
-#     image = serializers.SerializerMethodField()
-#     cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
-
-#     class Meta:
-#         model = FavoriteModel
-#         fields = ('id', 'name', 'image', 'cooking_time')
-
-#     def get_image(self, obj):
-#         return self.context['request'].build_absolute_uri(obj.recipe.image.url)
-
-#     def validate(self, attrs):
-#         recipec_id = self.context['view'].kwargs.get('recipe_id')
-#         user = self.context['request'].user
-#         if FavoriteModel.objects.filter(recipe=recipec_id, user=user).exists():
-#             raise serializers.ValidationError(
-#                 'Рецепт уже добавлен в избранное.'
-#             )
-#         return attrs
 
 
 class RecipeSerializer(serializers.ModelSerializer):

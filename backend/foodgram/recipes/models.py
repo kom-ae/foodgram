@@ -1,10 +1,13 @@
+import uuid
+import base64
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
 from constants import (INGREDIENT_NAME_LENGTH, INGREDIENT_UNIT_LENGTH,
                        MIN_COOKING_TIME, MSG_COOKING_TIME_ERROR,
-                       RECIPE_NAME_LENGTH, TAG_NAME_LENGTH, TAG_SLUG_LENGTH)
+                       RECIPE_NAME_LENGTH, TAG_NAME_LENGTH, TAG_SLUG_LENGTH, SHORT_LINK_RECIPE)
 from utils import get_trim_line
 from validators import validate_amount
 
@@ -64,6 +67,13 @@ class IngredientModel(models.Model):
         return get_trim_line(self.name)
 
 
+def get_uuid():
+    """Генерация коротких ссылок."""
+    return base64.urlsafe_b64encode(
+        uuid.uuid4().bytes
+    ).replace(b'=', b'').decode()[:SHORT_LINK_RECIPE]
+
+
 class RecipeModel(models.Model):
     """Рецепт."""
 
@@ -94,12 +104,23 @@ class RecipeModel(models.Model):
             )
         ]
     )
+    pub_date = models.DateTimeField(
+        db_index=True,
+        auto_now_add=True,
+        verbose_name='Дата публикации.'
+    )
+    short_link = models.CharField(
+        max_length=SHORT_LINK_RECIPE,
+        unique=True,
+        editable=False,
+        default=get_uuid
+    )
 
     class Meta:
         verbose_name = 'рецепт'
         verbose_name_plural = 'Рецепты'
         default_related_name = 'recipes'
-        ordering = ('name',)
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return '{}. Автор: {}'.format(

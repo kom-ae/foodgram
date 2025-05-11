@@ -12,6 +12,8 @@ INGREDIENT_NAME_LENGTH = 128
 INGREDIENT_UNIT_LENGTH = 64
 # Количество символов в name модели recipe
 RECIPE_NAME_LENGTH = 256
+# Длинна короткой ссылки на рецепт
+SHORT_LINK_RECIPE = 7
 # Количество символов в name модели ShoppingCartModel
 # SHOP_CART_NAME_LENGTH = RECIPE_NAME_LENGTH
 
