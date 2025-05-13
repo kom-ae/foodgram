@@ -5,7 +5,6 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
     """Редактирование, удаление только для авторов."""
 
     def has_object_permission(self, request, view, obj):
-        user = request.user
         return (request.method in permissions.SAFE_METHODS
-                or obj.author == user
+                or obj.author == request.user
                 )

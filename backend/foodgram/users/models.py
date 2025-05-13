@@ -16,7 +16,8 @@ class FoodGramUser(AbstractUser):
     last_name = models.CharField(
         verbose_name='Фамилия',
         max_length=LAST_NAME_LENGTH,
-        help_text='Обязательное поле.')
+        help_text='Обязательное поле.'
+    )
     email = models.EmailField(
         verbose_name='email address',
         unique=True,

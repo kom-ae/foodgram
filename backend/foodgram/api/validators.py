@@ -7,8 +7,6 @@ def validate_ingredients(value):
     if not value:
         raise serializers.ValidationError('Не определены ингредиенты.')
     ingredients_id = [item['id'] for item in value]
-    # for id in ingredients_id:
-    #     get_object_or_404(IngredientModel, pk=id)
     if len(ingredients_id) != len(set(ingredients_id)):
         raise serializers.ValidationError('Ингредиенты повторяются.')
     if (len(ingredients_id)

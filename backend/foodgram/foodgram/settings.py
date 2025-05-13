@@ -122,9 +122,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.FoodGramUser'
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    # ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 6,
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -134,14 +131,11 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'SERIALIZERS': {
-        # 'user_create': 'api.serializers.CreateUsersSerializer',
         'user': 'api.serializers.UsersSerializer',
-        # 'current_user': 'api.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
     'HIDE_USERS': False,
-    # 'LOGIN_FIELD': 'email',  # если хотите логиниться по email
 }

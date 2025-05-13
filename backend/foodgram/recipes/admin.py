@@ -15,6 +15,7 @@ class TagModelAdmin(ImportExportActionModelAdmin, ImportMixin):
 
 class RecipeIngredientInLine(admin.TabularInline):
     """InLine представление промежуточной модели рецептов и ингредиентов."""
+
     verbose_name = 'ингредиент'
     verbose_name_plural = 'Ингредиенты'
     model = RecipeIngredientModel
