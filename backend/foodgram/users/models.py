@@ -54,8 +54,7 @@ class SubscribeModel(models.Model):
         constraints = (
             models.CheckConstraint(
                 check=~models.Q(user=models.F('target')),
-                name='user_and_target_different',
-                violation_error_message='Нельзя подписаться на себя.'
+                name='user_and_target_different'
             ),
             models.UniqueConstraint(
                 fields=('user', 'target'),
