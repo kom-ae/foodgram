@@ -1,28 +1,24 @@
 import io
 
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import filters as rf_filters
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.filters import RecipeFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeMinifiedSerializer,
                              RecipeSerializer, SubscribedUserSerializer,
                              TagSerializer, UsersAvatarSerializer,
                              UsersSerializer)
-from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
 
@@ -33,7 +29,6 @@ class UsersProfileViewSet(UserViewSet):
     """Пользователь."""
 
     serializer_class = UsersSerializer
-    # pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -165,8 +160,8 @@ class IngredientViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (AllowAny,)
     pagination_class = None
-    filterset_fields = ('name',)
     http_method_names = ('get',)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

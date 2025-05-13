@@ -1,10 +1,12 @@
 from django.contrib import admin
+from import_export.admin import ImportExportActionModelAdmin, ImportMixin
 
-from recipes.models import TagModel, IngredientModel, RecipeModel, RecipeIngredientModel
+from recipes.models import (IngredientModel, RecipeIngredientModel,
+                            RecipeModel, TagModel)
 
 
 @admin.register(TagModel)
-class TagModelAdmin(admin.ModelAdmin):
+class TagModelAdmin(ImportExportActionModelAdmin, ImportMixin):
     """Админка тегов."""
 
     list_display = ('name', 'slug')
@@ -22,10 +24,11 @@ class RecipeIngredientInLine(admin.TabularInline):
 
     @admin.display(description='Единицы измерения')
     def get_unit(self, obj):
-                return obj.ingredient.measurement_unit
+        return obj.ingredient.measurement_unit
+
 
 @admin.register(IngredientModel)
-class IngredientModelAdmin(admin.ModelAdmin):
+class IngredientModelAdmin(ImportExportActionModelAdmin, ImportMixin):
     """Админка ингредиентов."""
 
     inlines = (RecipeIngredientInLine,)

@@ -1,0 +1,10 @@
+[
+    {"name": "Первое блюдо", "slug": "first_course"},
+    {"name": "Основное блюдо", "slug": "main_course"},
+    {"name": "Закуска", "slug": "snack"},
+    {"name": "Выпечка", "slug": "bakery_products"},
+    {"name": "Десерт", "slug": "dessert"},
+    {"name": "Напиток", "slug": "drink"},
+    {"name": "Соус", "slug": "sauce"},
+    {"name": "Гарнир", "slug": "side_dish"}
+]

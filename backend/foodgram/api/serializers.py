@@ -1,13 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_list_or_404, get_object_or_404
-from django.urls import reverse
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from api.validators import validate_ingredients as val_ingr
 from api.validators import validate_tags
-from favorite_cart.models import FavoriteModel
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
 
@@ -145,7 +142,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField(required=True, use_url=True)
 
-
     class Meta:
         model = RecipeModel
         fields = ('id', 'tags', 'author', 'ingredients',
@@ -172,12 +168,6 @@ class Ingredients(serializers.Serializer):
 
     class Meta:
         fields = ('id', 'amount')
-
-    # def validate_id(self, value):
-    #     if not IngredientModel.objects.filter(pk=value).exists():
-    #         raise serializers.ValidationError('Ингредиента нет в базе.')
-
-
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):

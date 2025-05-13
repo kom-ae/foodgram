@@ -1,7 +1,7 @@
 """Фильтры данных."""
 from django_filters import rest_framework as filters
 
-from recipes.models import RecipeModel
+from recipes.models import IngredientModel, RecipeModel
 
 
 class RecipeFilter(filters.FilterSet):
@@ -32,3 +32,13 @@ class RecipeFilter(filters.FilterSet):
                 return queryset.filter(shoppings_carts__user=user)
             return queryset.exclude(shoppings_carts__user=user)
         return queryset.none() if value else queryset
+
+
+class IngredientFilter(filters.FilterSet):
+    """Фильтрация ингредиентов."""
+
+    name = filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = IngredientModel
+        fields = ['name']

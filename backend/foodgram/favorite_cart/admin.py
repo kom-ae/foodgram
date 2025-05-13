@@ -1,7 +1,7 @@
 from django.contrib import admin
 
+from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import RecipeModel
-from favorite_cart.models import ShoppingCartModel, FavoriteModel
 
 
 @admin.register(ShoppingCartModel, FavoriteModel)

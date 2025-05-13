@@ -6,4 +6,5 @@ django-filter==23.1
 djoser
 python-dotenv==1.0.1
 psycopg2-binary==2.9.3
-Pillow==9.3.0 
+Pillow==9.3.0
+django-import-export

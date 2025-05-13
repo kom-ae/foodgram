@@ -1,5 +1,5 @@
-import uuid
 import base64
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
@@ -7,7 +7,8 @@ from django.db import models
 
 from constants import (INGREDIENT_NAME_LENGTH, INGREDIENT_UNIT_LENGTH,
                        MIN_COOKING_TIME, MSG_COOKING_TIME_ERROR,
-                       RECIPE_NAME_LENGTH, TAG_NAME_LENGTH, TAG_SLUG_LENGTH, SHORT_LINK_RECIPE)
+                       RECIPE_NAME_LENGTH, SHORT_LINK_RECIPE, TAG_NAME_LENGTH,
+                       TAG_SLUG_LENGTH)
 from utils import get_trim_line
 from validators import validate_amount
 
