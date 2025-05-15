@@ -13,6 +13,7 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
+from api.pagination import RecipePagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeMinifiedSerializer,
@@ -71,6 +72,7 @@ class UsersProfileViewSet(UserViewSet):
         subscriptions = User.objects.filter(
             pk__in=user.subscriber.values_list('target', flat=True)
         )
+        self.pagination_class = RecipePagination
         page = self.paginate_queryset(subscriptions)
         context = {
             'request': request,
@@ -162,6 +164,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = RecipePagination
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):

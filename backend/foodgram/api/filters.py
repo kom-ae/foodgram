@@ -11,11 +11,14 @@ class RecipeFilter(filters.FilterSet):
     is_in_shopping_cart = filters.BooleanFilter(
         method='filter_is_in_shopping_cart'
     )
-    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    tags = filters.CharFilter(method='filter_tags')
 
     class Meta:
         model = RecipeModel
         fields = ['is_favorited', 'is_in_shopping_cart', 'author', 'tags']
+
+    def filter_tags(self, queryset, name, value):
+        return queryset.filter(tags__slug__in=self.request.GET.getlist('tags'))
 
     def filter_is_favorited(self, queryset, name, value):
         user = self.request.user
