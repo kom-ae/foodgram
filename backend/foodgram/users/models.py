@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from constants import FIRST_NAME_LENGTH, LAST_NAME_LENGTH
+from constants import FIRST_NAME_LENGTH, LAST_NAME_LENGTH, PASSWORD_LENGTH
 
 
 class FoodGramUser(AbstractUser):
@@ -26,9 +26,12 @@ class FoodGramUser(AbstractUser):
     avatar = models.ImageField(
         upload_to='users/',
         null=True,
-        default=None
+        default=''
     )
-    password = models.CharField(verbose_name='пароль', max_length=128)
+    password = models.CharField(
+        verbose_name='пароль',
+        max_length=PASSWORD_LENGTH
+    )
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     USERNAME_FIELD = "email"
 

@@ -19,7 +19,7 @@ from api.serializers import (CreateUsersSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeMinifiedSerializer,
                              RecipeSerializer, SubscribedUserSerializer,
                              TagSerializer, UsersAvatarSerializer,
-                             UsersSerializer)
+                             UsersSerializer, SubscribeSerializer, FavoriteSerializer)
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
 
@@ -102,37 +102,31 @@ class UsersProfileViewSet(UserViewSet):
         """Создай, удали подписку на пользователя."""
         user = request.user
         target = self.get_object()
-        subscriber_instance = user.subscriber.filter(target=target)
         if request.method == 'POST':
-            if subscriber_instance:
+            serializer = SubscribeSerializer(
+                data={
+                    'user': user.id,
+                    'target': target.id
+                },
+                context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save()
                 return Response(
-                    {'detail': 'На этого пользователя уже подписаны.'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
                 )
-            if user == target:
-                return Response(
-                    {'detail': 'Нельзя подписываться на самого себя.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            user.subscriber.create(target=target)
-            serializer = SubscribedUserSerializer(
-                target,
-                context={
-                    'request': request,
-                    'recipes_limit': request.query_params.get(
-                        'recipes_limit'
-                    )
-                }
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            if subscriber_instance:
-                subscriber_instance.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
-                {'detail': 'На этого пользователя не подписаны.'},
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
+        subscriber_instance = user.subscriber.filter(target=target)
+        if subscriber_instance:
+            subscriber_instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'detail': 'На этого пользователя не подписаны.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class TagsViewSet(viewsets.ModelViewSet):
@@ -185,27 +179,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Добавь, удали рецепт из избранного."""
         recipe = self.get_object()
         user = request.user
-        fav_instance = user.favorites.filter(recipe=recipe)
-
         if request.method == 'POST':
-            if fav_instance:
-                return Response(
-                    {'detail': 'Рецепт уже добавлен в избранное.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            user.favorites.create(recipe=recipe)
-            serializer = RecipeMinifiedSerializer(
-                recipe,
+            serializer = FavoriteSerializer(
+                data={
+                    'user': user.id,
+                    'recipe': recipe.id
+                },
                 context={'request': request}
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            if fav_instance:
-                fav_instance.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
             return Response(
-                {'detail': 'Рецепт в избранном не найден.'},
-                status=status.HTTP_400_BAD_REQUEST)
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        fav_instance = user.favorites.filter(recipe=recipe)
+        if fav_instance:
+            fav_instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'detail': 'Рецепт в избранном не найден.'},
+            status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, *args, **kwargs):

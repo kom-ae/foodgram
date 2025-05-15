@@ -4,9 +4,11 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from api.validators import validate_ingredients as val_ingr
-from api.validators import validate_tags
+from api.validators import validate_tags, validate_subscribe, validate_favorite
+from favorite_cart.models import FavoriteModel
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
+from users.models import SubscribeModel
 
 User = get_user_model()
 
@@ -57,12 +59,26 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
         model = RecipeModel
         fields = ('id', 'name', 'image', 'cooking_time')
 
-    def get_recipes(self, obj):
-        pass
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Избранное."""
+
+    class Meta:
+        model = FavoriteModel
+        fields = ('user', 'recipe')
+
+    def validate(self, attrs):
+        return validate_favorite(attrs)
+
+    def to_representation(self, instance):
+        return RecipeMinifiedSerializer(
+            instance.recipe,
+            context=self.context
+        ).data
 
 
 class SubscribedUserSerializer(UsersSerializer):
-    """Подписки."""
+    """Верни данные пользователя (на которого подписан) с его рецептами."""
 
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -84,11 +100,34 @@ class SubscribedUserSerializer(UsersSerializer):
         return obj.recipes.count()
 
     def get_recipes(self, obj):
-        recipes_limit = self.context.get('recipes_limit')
+        recipes_limit = self.context.get('request').query_params.get(
+            'recipes_limit'
+        )
         recipes = obj.recipes.all()
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
-        return RecipeMinifiedSerializer(recipes, many=True).data
+        return RecipeMinifiedSerializer(
+            recipes,
+            context=self.context,
+            many=True
+        ).data
+
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    """Подписки."""
+
+    class Meta:
+        model = SubscribeModel
+        fields = ('user', 'target')
+
+    def validate(self, data):
+        return validate_subscribe(data)
+
+    def to_representation(self, instance):
+        return SubscribedUserSerializer(
+            instance.target,
+            context={'request': self.context['request']}
+        ).data
 
 
 class UsersAvatarSerializer(serializers.ModelSerializer):

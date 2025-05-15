@@ -2,6 +2,8 @@
 FIRST_NAME_LENGTH = 150
 # Количество символов в поле last_name модели FoodGramUser
 LAST_NAME_LENGTH = 150
+# Длинна пароля пользователя
+PASSWORD_LENGTH = 128
 # Количество символов в поле slug модели Tag
 TAG_SLUG_LENGTH = 32
 # Количество символов в поле name модели Tag

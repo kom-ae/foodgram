@@ -43,3 +43,25 @@ def validate_tags(value):
             != TagModel.objects.filter(pk__in=tags_id).count()):
         raise serializers.ValidationError('Не все тэги есть в базе.')
     return value
+
+
+def validate_subscribe(data):
+    user = data.get('user')
+    target = data.get('target')
+    if user.subscriber.filter(target=target).exists():
+        raise serializers.ValidationError(
+            'На этого пользователя уже подписаны.'
+        )
+    if user == target:
+        raise serializers.ValidationError(
+            'Нельзя подписываться на самого себя.'
+        )
+    return data
+
+
+def validate_favorite(data):
+    recipe = data.get('recipe')
+    user = data.get('user')
+    if user.favorites.filter(recipe=recipe).exists():
+        raise serializers.ValidationError('Рецепт уже добавлен в избранное.')
+    return data
