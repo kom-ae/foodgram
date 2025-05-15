@@ -216,7 +216,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
-        methods=['get',],
+        methods=['get'],
         detail=False,
         permission_classes=(IsAuthenticated,),
         url_path='download_shopping_cart'
