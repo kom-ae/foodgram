@@ -104,31 +104,15 @@ class UsersProfileViewSet(UserViewSet):
         """Создай, удали подписку на пользователя."""
         target = self.get_object()
         user = request.user
-        if request.method == 'POST':
-            serializer = SubscribeSerializer(
-                data={
-                    'user': user.id,
-                    'target': target.id
-                },
-                context={'request': request}
-            )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(
-                    serializer.data,
-                    status=status.HTTP_201_CREATED
-                )
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        subscriber_instance = user.subscriber.filter(target=target)
-        if subscriber_instance:
-            subscriber_instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {'detail': 'На этого пользователя не подписаны.'},
-            status=status.HTTP_400_BAD_REQUEST
+        data = {
+            'target': target.pk,
+            'user': user.pk
+        }
+        return action_post_delete(
+            request=request,
+            serializer=SubscribeSerializer,
+            data=data,
+            instance=user.subscriber.filter(target=target)
         )
 
 
@@ -182,21 +166,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Добавь, удали рецепт из избранного."""
         recipe = self.get_object()
         user = request.user
+        data = {
+            'recipe': recipe.pk,
+            'user': user.pk
+        }
         return action_post_delete(
-            obj=self,
+            request=request,
             serializer=FavoriteSerializer,
+            data=data,
             instance=user.favorites.filter(recipe=recipe)
         )
 
-    @ action(methods=['get'], detail=True, url_path='get-link')
+    @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, *args, **kwargs):
         """Верни короткую ссылку на рецепт."""
-        link=self.get_object().short_link
+        link = self.get_object().short_link
         return Response(
             {'short-link': request.build_absolute_uri('/') + 's/' + link}
         )
 
-    @ action(
+    @action(
         methods=['get'],
         detail=False,
         permission_classes=(IsAuthenticated,),
@@ -204,34 +193,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request, *args, **kwargs):
         """Файл со списком покупок."""
-        user=request.user
-        shopping_cart=user.shoppings_carts.values_list('recipe', flat=True)
-        ingredients=RecipeIngredientModel.objects.filter(
+        user = request.user
+        shopping_cart = user.shoppings_carts.values_list('recipe', flat=True)
+        ingredients = RecipeIngredientModel.objects.filter(
             recipe__in=shopping_cart
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(count=Sum('amount'))
         if shopping_cart:
-            buffer=io.StringIO()
+            buffer = io.StringIO()
 
             for item in ingredients:
-                line='{} ({}) - {}'.format(
+                line = '{} ({}) - {}'.format(
                     item['ingredient__name'],
                     item['ingredient__measurement_unit'],
                     item['count']
                 )
                 buffer.write(line + '\n')
             buffer.seek(0)
-            response=HttpResponse(buffer, content_type='text/plain')
-            response['Content-Disposition']='attachment; filename="data.txt"'
+            response = HttpResponse(buffer, content_type='text/plain')
+            response['Content-Disposition'] = 'attachment; filename="data.txt"'
             return response
         return Response(
             {'detail': 'Список покупок пуст.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @ action(
+    @action(
         methods=['post', 'delete'],
         detail=True,
         url_path='shopping_cart',
@@ -239,39 +228,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, *args, **kwargs):
         """Добавить, удалить рецепт из списка покупок."""
-
-        user=request.user
-        recipe=self.get_object()
+        user = request.user
+        recipe = self.get_object()
+        data = {
+            'recipe': recipe.pk,
+            'user': user.pk
+        }
         return action_post_delete(
-            obj=self,
+            request=request,
             serializer=ShoppingCartSerializer,
+            data=data,
             instance=user.shoppings_carts.filter(recipe=recipe)
         )
-        # user = request.user
-        # recipe = self.get_object()
-
-        # if request.method == 'POST':
-        #     serializer = ShoppingCartSerializer(
-        #         data={
-        #             'user': user.id,
-        #             'recipe': recipe.id
-        #         },
-        #         context={'request': request}
-        #     )
-        #     if serializer.is_valid():
-        #         serializer.save()
-        #         return Response(
-        #             serializer.data,
-        #             status=status.HTTP_201_CREATED
-        #         )
-        #     return Response(
-        #         serializer.errors,
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
-        # shoppings_carts_inst = user.shoppings_carts.filter(recipe=recipe)
-        # if shoppings_carts_inst:
-        #     shoppings_carts_inst.delete()
-        #     return Response(status=status.HTTP_204_NO_CONTENT)
-        # return Response(
-        #     {'detail': 'Рецепта не было в списке покупок.'},
-        #     status=status.HTTP_400_BAD_REQUEST)

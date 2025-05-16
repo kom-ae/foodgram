@@ -2,18 +2,12 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def action_post_delete(obj, serializer, instance):
+def action_post_delete(request, serializer, data, instance):
     """Создание, удаление для списка покупок, избранного, подписок."""
-    request = obj.request
-    user = request.user
-    recipe = obj.get_object()
 
     if request.method == 'POST':
         serializer = serializer(
-            data={
-                'user': user.id,
-                'recipe': recipe.id
-            },
+            data=data,
             context={'request': request}
         )
         if serializer.is_valid():

@@ -238,9 +238,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
+    # в запросе передается ключ, проверил, ошибок не возникает
     def validate_ingredients(self, value):
         return val_ingr(value)
 
+    # в запросе передается ключ, проверил, ошибок не возникает
     def validate_tags(self, value):
         return validate_tags(value)
 
@@ -254,17 +256,26 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Переданы не все данные.')
         return data
 
+    @staticmethod
+    def recipe_ingredient_update_or_create(recipe, ingredients):
+        for ingredient in ingredients:
+            RecipeIngredientModel.objects.update_or_create(
+                defaults={
+                    'amount': ingredient['amount']
+                },
+                recipe=recipe,
+                ingredient_id=ingredient['id'],
+            )
+
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = RecipeModel.objects.create(**validated_data)
         recipe.tags.set(tags)
-        for ingredient in ingredients:
-            RecipeIngredientModel.objects.create(
-                recipe=recipe,
-                ingredient_id=ingredient['id'],
-                amount=ingredient['amount']
-            )
+        self.recipe_ingredient_update_or_create(
+            recipe=recipe,
+            ingredients=ingredients
+        )
         return recipe
 
     def update(self, instance, validated_data):
@@ -274,15 +285,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients_current:
             if ingredient.ingredient_id not in ingredients_id:
                 RecipeIngredientModel.objects.get(pk=ingredient.id).delete()
-        for ingredient in ingredients:
-            RecipeIngredientModel.objects.filter().update_or_create(
-                defaults={
-                    'amount': ingredient['amount']
-                },
-                recipe=instance,
-                ingredient_id=ingredient['id'],
-
-            )
+        self.recipe_ingredient_update_or_create(
+            recipe=instance,
+            ingredients=ingredients
+        )
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get(
@@ -293,6 +299,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.tags.set(validated_data.get('tags', instance.tags))
         instance.save()
         return instance
+        # через super ругается что не поддерживает вложенные поля
+        # return super().update(instance, validated_data) 
 
     def to_representation(self, instance):
         return RecipeSerializer(
