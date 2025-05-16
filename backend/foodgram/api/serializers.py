@@ -4,8 +4,8 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from api.validators import validate_ingredients as val_ingr
-from api.validators import validate_tags, validate_subscribe, validate_favorite
-from favorite_cart.models import FavoriteModel
+from api.validators import validate_tags, validate_subscribe
+from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
 from users.models import SubscribeModel
@@ -67,14 +67,25 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = FavoriteModel
         fields = ('user', 'recipe')
 
-    def validate(self, attrs):
-        return validate_favorite(attrs)
+    # Проверка существования записи происходит на уровне модели
+    # в эту проверку при существующей записи выполнение не заходит
+    # ошибка выкидывается раньше
+
+    # def validate(self, attrs):
+    #     return validate_favorite(attrs)
 
     def to_representation(self, instance):
         return RecipeMinifiedSerializer(
             instance.recipe,
             context=self.context
         ).data
+
+
+class ShoppingCartSerializer(FavoriteSerializer):
+    """Список покупок."""
+
+    class Meta(FavoriteSerializer.Meta):
+        model = ShoppingCartModel
 
 
 class SubscribedUserSerializer(UsersSerializer):

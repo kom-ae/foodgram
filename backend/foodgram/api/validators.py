@@ -58,10 +58,13 @@ def validate_subscribe(data):
         )
     return data
 
+# Проверка существования записи происходит на уровне модели
+# в эту проверку при существующей записи выполнение не заходит
+# ошибка выкидывается раньше
 
-def validate_favorite(data):
-    recipe = data.get('recipe')
-    user = data.get('user')
-    if user.favorites.filter(recipe=recipe).exists():
-        raise serializers.ValidationError('Рецепт уже добавлен в избранное.')
-    return data
+# def validate_favorite(data):
+#     recipe = data.get('recipe')
+#     user = data.get('user')
+#     if user.favorites.filter(recipe=recipe).exists():
+#         raise serializers.ValidationError('Рецепт уже добавлен в избранное.')
+#     return data
