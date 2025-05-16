@@ -17,10 +17,10 @@ from api.pagination import RecipePagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateUsersSerializer, FavoriteSerializer,
                              IngredientSerializer, RecipeCreateSerializer,
-                             RecipeMinifiedSerializer, RecipeSerializer,
-                             ShoppingCartSerializer, SubscribedUserSerializer,
-                             SubscribeSerializer, TagSerializer,
-                             UsersAvatarSerializer, UsersSerializer)
+                             RecipeSerializer, ShoppingCartSerializer,
+                             SubscribedUserSerializer, SubscribeSerializer,
+                             TagSerializer, UsersAvatarSerializer,
+                             UsersSerializer)
 from api.utils import action_post_delete
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)

@@ -4,7 +4,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from api.validators import validate_ingredients as val_ingr
-from api.validators import validate_tags, validate_subscribe
+from api.validators import validate_subscribe, validate_tags
 from favorite_cart.models import FavoriteModel, ShoppingCartModel
 from recipes.models import (IngredientModel, RecipeIngredientModel,
                             RecipeModel, TagModel)
@@ -300,7 +300,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
         # через super ругается что не поддерживает вложенные поля
-        # return super().update(instance, validated_data) 
+        # return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         return RecipeSerializer(
